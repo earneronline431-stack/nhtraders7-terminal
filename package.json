@@ -1,0 +1,12 @@
+{
+  "name": "nhtraders7-terminal",
+  "version": "1.0.0",
+  "description": "NHTRADERS7 Market Intelligence Terminal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

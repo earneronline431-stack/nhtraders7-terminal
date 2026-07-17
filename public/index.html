@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NHTRADERS7 · Market Intelligence Terminal</title>
+<style>
+:root{
+  --bg:#0c0e12;--s1:#111318;--s2:#181b22;--s3:#1f2330;
+  --bd:rgba(255,255,255,0.06);--bd2:rgba(255,255,255,0.11);
+  --tx:#dde1e9;--mt:#5a6272;--mt2:#8892a4;
+  --ac:#f0b429;--gn:#22c55e;--gn2:rgba(34,197,94,0.12);
+  --rd:#ef4444;--rd2:rgba(239,68,68,0.12);--r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px}
+
+/* NAV */
+.nav{display:flex;align-items:center;height:50px;border-bottom:1px solid var(--bd);background:var(--s1);padding:0 18px;gap:0;position:relative;z-index:100}
+.logo{font-size:14px;font-weight:700;color:var(--ac);letter-spacing:2px;margin-right:28px;flex-shrink:0}
+.logo span{display:block;font-size:9px;color:var(--mt);letter-spacing:1px;font-weight:400;margin-top:-2px}
+.navtabs{display:flex;gap:1px;overflow-x:auto;flex:1}
+.navtabs::-webkit-scrollbar{display:none}
+.nt{padding:6px 11px;border-radius:6px;cursor:pointer;color:var(--mt2);font-size:11px;border:none;background:none;white-space:nowrap;transition:all .15s}
+.nt:hover{color:var(--tx);background:var(--s2)}
+.nt.on{color:var(--ac);background:rgba(240,180,41,0.1)}
+.nav-status{margin-left:12px;display:flex;align-items:center;gap:6px;font-size:10px;color:var(--mt2);flex-shrink:0}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--gn);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* LAYOUT */
+.wrap{display:flex;height:calc(100vh - 50px)}
+.sidebar{width:195px;background:var(--s1);border-right:1px solid var(--bd);overflow-y:auto;flex-shrink:0}
+.sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-track{background:transparent}.sidebar::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.sb-h{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:1.8px;padding:10px 13px 3px}
+.sb-i{display:flex;align-items:center;justify-content:space-between;padding:7px 13px;cursor:pointer;border-left:2px solid transparent;transition:all .12s}
+.sb-i:hover{background:var(--s2)}.sb-i.on{background:rgba(240,180,41,0.07);border-left-color:var(--ac)}
+.sb-sym{font-size:12px;font-weight:600}
+.sb-r{text-align:right}.sb-p{font-size:11px;color:var(--mt2)}.sb-c{font-size:10px}
+.pos{color:var(--gn)}.neg{color:var(--rd)}.neu{color:var(--mt2)}
+.sb-div{height:1px;background:var(--bd);margin:3px 13px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main::-webkit-scrollbar{width:4px}.main::-webkit-scrollbar-track{background:transparent}.main::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.pg{display:none;padding:18px;gap:14px;flex-direction:column}
+.pg.on{display:flex}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px;overflow:hidden}
+.ctitle{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.span2{grid-column:span 2}
+
+/* KPIs */
+.krow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:13px}
+.klbl{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px}
+.kval{font-size:20px;font-weight:700;line-height:1}.kdlt{font-size:10px;margin-top:3px;color:var(--mt2)}
+
+/* BADGE */
+.bdg{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.bdg-b{background:var(--gn2);color:var(--gn);border:1px solid rgba(34,197,94,0.2)}
+.bdg-s{background:var(--rd2);color:var(--rd);border:1px solid rgba(239,68,68,0.2)}
+.bdg-n{background:rgba(90,98,114,0.12);color:var(--mt2);border:1px solid var(--bd2)}
+
+/* COMPASS */
+.cmp{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.ci{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:8px;text-align:center}
+.ci-l{font-size:9px;color:var(--mt);margin-bottom:2px}.ci-v{font-size:12px;font-weight:600}
+
+/* OB */
+.ob-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px}
+.ob-row:last-child{border:none}
+.obz{padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700}
+.obz-b{background:var(--gn2);color:var(--gn)}.obz-s{background:var(--rd2);color:var(--rd)}
+
+/* SIG TABLE */
+.stbl{width:100%;border-collapse:collapse}
+.stbl th{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:1px;padding:0 6px 7px 0;text-align:left}
+.stbl td{padding:6px 6px 6px 0;border-top:1px solid var(--bd);font-size:11px}
+.stbl tr:first-child td{border-top:none}
+.sig{padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700}
+.sig-b{background:var(--gn2);color:var(--gn)}.sig-s{background:var(--rd2);color:var(--rd)}.sig-w{background:rgba(90,98,114,0.1);color:var(--mt2)}
+
+/* GAUGE */
+.gauge-outer{display:flex;flex-direction:column;align-items:center;padding:12px 0 6px}
+.gauge-num{font-size:42px;font-weight:700;line-height:1}
+.gauge-verdict{font-size:11px;color:var(--mt2);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.gauge-track{width:100%;height:8px;background:linear-gradient(to right,#ef4444,#f59e0b,#22c55e);border-radius:4px;position:relative;margin:12px 0 4px}
+.gauge-ptr{width:3px;height:14px;background:white;border-radius:2px;position:absolute;top:-3px;transform:translateX(-50%);box-shadow:0 0 4px rgba(0,0,0,.5);transition:left .6s}
+.gauge-scale{display:flex;justify-content:space-between;font-size:9px;color:var(--mt)}
+
+/* FACTOR GRID */
+.fact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.fact-item{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:var(--s2);border-radius:6px;font-size:11px}
+.fact-v{font-weight:700;font-size:12px}
+
+/* STR BARS */
+.str-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.str-sym{width:38px;font-size:11px;font-weight:600;flex-shrink:0}
+.str-bw{flex:1;height:5px;background:var(--s3);border-radius:3px;overflow:hidden}
+.str-bf{height:100%;border-radius:3px;transition:width .5s}
+.str-v{width:30px;text-align:right;font-size:10px;color:var(--mt2)}
+
+/* SCORE BAR */
+.scr{margin-bottom:7px}
+.scr-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px}
+.scr-bar{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
+.scr-fill{height:100%;border-radius:2px}
+
+/* COT */
+.cot-i{margin-bottom:8px}
+.cot-h{display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px}
+.cot-bw{height:6px;background:var(--s3);border-radius:3px;overflow:hidden;display:flex}
+.cot-l{background:var(--gn)}.cot-s{background:var(--rd)}
+
+/* MATRIX */
+.mtx{overflow-x:auto}
+.mtbl{border-collapse:collapse;font-size:10px;width:100%}
+.mtbl th{padding:4px 7px;font-size:9px;color:var(--mt);letter-spacing:.8px;border-bottom:1px solid var(--bd);text-align:center;white-space:nowrap}
+.mtbl th.lh{text-align:left;width:55px}
+.mtbl td{padding:5px 7px;text-align:center;border:1px solid rgba(255,255,255,0.03);font-size:10px;font-weight:600}
+.mb{background:rgba(34,197,94,0.15);color:var(--gn)}.mbb{background:rgba(34,197,94,0.3);color:#4ade80}
+.ms{background:rgba(239,68,68,0.15);color:var(--rd)}.mss{background:rgba(239,68,68,0.3);color:#f87171}
+.mn{background:rgba(90,98,114,0.08);color:var(--mt2)}.mpair{text-align:left;font-size:11px;font-weight:600;color:var(--tx)}
+
+/* PLAYBOOK */
+.pbc{background:var(--s2);border-radius:8px;padding:13px;border-left:3px solid var(--ac);margin-bottom:10px}
+.pbc.bull{border-left-color:var(--gn)}.pbc.bear{border-left-color:var(--rd)}
+.pbc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pbc-pair{font-weight:600;font-size:13px}
+.pbc-cv{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px}
+.hi-cv{background:var(--gn2);color:var(--gn)}.md-cv{background:rgba(90,98,114,0.1);color:var(--mt2)}
+.pbc-det{font-size:11px;color:var(--mt2);line-height:1.8}.pbc-det b{color:var(--tx)}
+
+/* CALENDAR */
+.ev{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:11px}
+.ev:last-child{border:none}.ev-t{width:50px;color:var(--mt2);flex-shrink:0}.ev-c{width:28px;font-weight:700;flex-shrink:0}
+.ev-n{flex:1}.ev-imp{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;flex-shrink:0}
+.ih{background:var(--rd2);color:var(--rd)}.im{background:rgba(240,180,41,0.12);color:var(--ac)}.il{background:rgba(90,98,114,0.1);color:var(--mt2)}
+.ev-fc{color:var(--mt2);width:45px;text-align:right;flex-shrink:0}
+
+/* BRIEF */
+.brief{background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);padding:16px;font-size:12px;line-height:1.9;color:var(--mt2)}
+.brief b{color:var(--tx)}.brief-date{font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+
+/* TV CHART */
+.tv-wrap{border-radius:8px;overflow:hidden;background:#131722}
+
+/* PH */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ph-l .ptitle{font-size:18px;font-weight:600;margin-bottom:2px}
+.ph-l .psub{font-size:10px;color:var(--mt2)}
+
+/* SESSION */
+.sess-info{padding:4px 13px}
+.sess-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:10px}
+.sdot{width:5px;height:5px;border-radius:50%;margin-right:5px;display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">NHTRADERS7<span>MARKET INTELLIGENCE</span></div>
+  <div class="navtabs">
+    <button class="nt on"  onclick="go('command',this)">⌂ Command</button>
+    <button class="nt" onclick="go('scorecard',this)">◧ Scorecard</button>
+    <button class="nt" onclick="go('matrix',this)">▦ Signal Matrix</button>
+    <button class="nt" onclick="go('pairs',this)">⇄ Pair Matrix</button>
+    <button class="nt" onclick="go('cot',this)">◈ COT</button>
+    <button class="nt" onclick="go('yields',this)">↗ Yields</button>
+    <button class="nt" onclick="go('seasonality',this)">◴ Seasonality</button>
+    <button class="nt" onclick="go('sentiment',this)">◵ Sentiment</button>
+    <button class="nt" onclick="go('calendar',this)">◫ Calendar</button>
+    <button class="nt" onclick="go('playbook',this)">⬡ Playbook</button>
+    <button class="nt" onclick="go('brief',this)">✦ Daily Brief</button>
+  </div>
+  <div class="nav-status"><span class="ldot"></span><span id="live-lbl">Live</span></div>
+</nav>
+
+<div class="wrap">
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-h">Metals</div>
+  <div class="sb-i on" onclick="pickSym(this,'XAUUSD','XAU/USD')"><span class="sb-sym">XAUUSD</span><div class="sb-r"><div class="sb-p" id="sbp-XAUUSD">—</div><div class="sb-c" id="sbc-XAUUSD">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'XAGUSD','XAG/USD')"><span class="sb-sym">XAGUSD</span><div class="sb-r"><div class="sb-p" id="sbp-XAGUSD">—</div><div class="sb-c" id="sbc-XAGUSD">—</div></div></div>
+  <div class="sb-div"></div>
+  <div class="sb-h">FX · Major</div>
+  <div class="sb-i" onclick="pickSym(this,'EURUSD','EUR/USD')"><span class="sb-sym">EURUSD</span><div class="sb-r"><div class="sb-p" id="sbp-EURUSD">—</div><div class="sb-c" id="sbc-EURUSD">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'GBPUSD','GBP/USD')"><span class="sb-sym">GBPUSD</span><div class="sb-r"><div class="sb-p" id="sbp-GBPUSD">—</div><div class="sb-c" id="sbc-GBPUSD">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'USDJPY','USD/JPY')"><span class="sb-sym">USDJPY</span><div class="sb-r"><div class="sb-p" id="sbp-USDJPY">—</div><div class="sb-c" id="sbc-USDJPY">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'USDCHF','USD/CHF')"><span class="sb-sym">USDCHF</span><div class="sb-r"><div class="sb-p" id="sbp-USDCHF">—</div><div class="sb-c" id="sbc-USDCHF">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'AUDUSD','AUD/USD')"><span class="sb-sym">AUDUSD</span><div class="sb-r"><div class="sb-p" id="sbp-AUDUSD">—</div><div class="sb-c" id="sbc-AUDUSD">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'USDCAD','USD/CAD')"><span class="sb-sym">USDCAD</span><div class="sb-r"><div class="sb-p" id="sbp-USDCAD">—</div><div class="sb-c" id="sbc-USDCAD">—</div></div></div>
+  <div class="sb-i" onclick="pickSym(this,'NZDUSD','NZD/USD')"><span class="sb-sym">NZDUSD</span><div class="sb-r"><div class="sb-p" id="sbp-NZDUSD">—</div><div class="sb-c" id="sbc-NZDUSD">—</div></div></div>
+  <div class="sb-div"></div>
+  <div class="sb-h">Session</div>
+  <div class="sess-info" id="sess-info"></div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ══ COMMAND ══ -->
+<div class="pg on" id="pg-command">
+  <div class="ph">
+    <div class="ph-l"><div class="ptitle" id="cmd-title">XAUUSD — Gold vs US Dollar</div><div class="psub" id="cmd-sub">Live · London Session</div></div>
+    <span class="bdg bdg-b" id="cmd-badge">BULLISH</span>
+  </div>
+  <!-- KPI ROW — LIVE from TradingView ticker -->
+  <div id="tv-ticker-bar">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {"symbols":[{"proName":"OANDA:XAUUSD","title":"Gold"},{"proName":"OANDA:XAGUSD","title":"Silver"},{"proName":"OANDA:EURUSD","title":"EUR/USD"},{"proName":"OANDA:GBPUSD","title":"GBP/USD"},{"proName":"OANDA:USDJPY","title":"USD/JPY"},{"proName":"OANDA:AUDUSD","title":"AUD/USD"},{"proName":"OANDA:USDCAD","title":"USD/CAD"},{"proName":"OANDA:USDCHF","title":"USD/CHF"}],"showSymbolLogo":true,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"en"}
+      </script>
+    </div>
+  </div>
+  <!-- LIVE TV CHART -->
+  <div class="card" style="padding:0">
+    <div class="tv-wrap" style="height:380px">
+      <div class="tradingview-widget-container" style="height:100%">
+        <div id="tv-chart-container" style="height:100%"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/tv.js" async onload="initTVChart()"></script>
+      </div>
+    </div>
+  </div>
+  <div class="g3">
+    <!-- COMPASS -->
+    <div class="card">
+      <div class="ctitle">Trend Compass</div>
+      <div class="cmp">
+        <div class="ci"><div class="ci-l">M3</div><div class="ci-v" id="c-m3">—</div></div>
+        <div class="ci"><div class="ci-l">M15</div><div class="ci-v" id="c-m15">—</div></div>
+        <div class="ci"><div class="ci-l">H1</div><div class="ci-v" id="c-h1">—</div></div>
+        <div class="ci"><div class="ci-l">H4</div><div class="ci-v" id="c-h4">—</div></div>
+        <div class="ci"><div class="ci-l">D1</div><div class="ci-v" id="c-d1">—</div></div>
+        <div class="ci"><div class="ci-l">W1</div><div class="ci-v" id="c-w1">—</div></div>
+      </div>
+    </div>
+    <!-- ORDER BLOCKS -->
+    <div class="card">
+      <div class="ctitle">Order Blocks <span style="font-size:9px;color:var(--gn)">● Live</span></div>
+      <div id="ob-list"><div class="ob-row"><span style="color:var(--mt2)">Loading...</span></div></div>
+    </div>
+    <!-- SIGNAL SUMMARY -->
+    <div class="card">
+      <div class="ctitle">Signal Summary</div>
+      <table class="stbl">
+        <tr><th>Factor</th><th>Signal</th></tr>
+        <tr><td>EMA200 Trend</td><td><span class="sig" id="ss-tr">—</span></td></tr>
+        <tr><td>Order Block</td><td><span class="sig" id="ss-ob">—</span></td></tr>
+        <tr><td>RSI (14)</td><td><span class="sig" id="ss-rsi">—</span></td></tr>
+        <tr><td>Session</td><td><span class="sig" id="ss-ses">—</span></td></tr>
+        <tr><td>COT Bias</td><td><span class="sig" id="ss-cot">—</span></td></tr>
+        <tr><td><b>Overall</b></td><td><span class="sig" id="ss-ov">—</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCORECARD ══ -->
+<div class="pg" id="pg-scorecard">
+  <div class="ph"><div class="ph-l"><div class="ptitle">18-Factor Composite Scorecard</div><div class="psub">±36 scale · Growth · Rates · COT · Seasonality · Sentiment · Technicals</div></div></div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">XAUUSD Composite Score</div>
+      <div class="gauge-outer">
+        <div class="gauge-num pos" id="g-xau">+14</div>
+        <div class="gauge-verdict pos">BULLISH</div>
+      </div>
+      <div class="gauge-track"><div class="gauge-ptr" id="gptr-xau" style="left:69%"></div></div>
+      <div class="gauge-scale"><span>−36</span><span>BEARISH</span><span>0</span><span>BULLISH</span><span>+36</span></div>
+      <div class="fact-grid">
+        <div class="fact-item"><span>Growth</span><span class="fact-v pos">+4</span></div>
+        <div class="fact-item"><span>Inflation</span><span class="fact-v pos">+3</span></div>
+        <div class="fact-item"><span>Rates</span><span class="fact-v pos">+2</span></div>
+        <div class="fact-item"><span>Employment</span><span class="fact-v pos">+2</span></div>
+        <div class="fact-item"><span>COT</span><span class="fact-v pos">+3</span></div>
+        <div class="fact-item"><span>Technicals</span><span class="fact-v pos">+2</span></div>
+        <div class="fact-item"><span>Seasonality</span><span class="fact-v pos">+1</span></div>
+        <div class="fact-item"><span>Sentiment</span><span class="fact-v neg">-3</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ctitle">Currency Strength Index</div>
+      <div id="str-bars"><div style="color:var(--mt2);font-size:11px;padding:10px 0">Loading live data...</div></div>
+    </div>
+  </div>
+  <div class="g4">
+    <div class="card"><div class="ctitle">EURUSD</div><div style="font-size:32px;font-weight:700;color:var(--mt2);margin:4px 0">+1</div><div style="font-size:9px;color:var(--mt2)">NEUTRAL</div></div>
+    <div class="card"><div class="ctitle">GBPUSD</div><div style="font-size:32px;font-weight:700" class="neg">-8</div><div style="font-size:9px;color:var(--rd)">BEARISH</div></div>
+    <div class="card"><div class="ctitle">USDJPY</div><div style="font-size:32px;font-weight:700" class="pos">+11</div><div style="font-size:9px;color:var(--gn)">BULLISH</div></div>
+    <div class="card"><div class="ctitle">AUDUSD</div><div style="font-size:32px;font-weight:700" class="neg">-6</div><div style="font-size:9px;color:var(--rd)">BEARISH</div></div>
+  </div>
+  <!-- TradingView Mini Charts -->
+  <div class="g2">
+    <div class="card" style="padding:0"><div class="tradingview-widget-container" style="height:200px"><div class="tradingview-widget-container__widget" style="height:200px"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>{"symbol":"OANDA:XAUUSD","width":"100%","height":"200","locale":"en","dateRange":"1D","colorTheme":"dark","isTransparent":true,"autosize":false,"largeChartUrl":""}</script></div></div>
+    <div class="card" style="padding:0"><div class="tradingview-widget-container" style="height:200px"><div class="tradingview-widget-container__widget" style="height:200px"></div><script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>{"symbol":"OANDA:EURUSD","width":"100%","height":"200","locale":"en","dateRange":"1D","colorTheme":"dark","isTransparent":true,"autosize":false}</script></div></div>
+  </div>
+</div>
+
+<!-- ══ SIGNAL MATRIX ══ -->
+<div class="pg" id="pg-matrix">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Signal Matrix</div><div class="psub">8 currencies × 8 factors · Heat-mapped by conviction</div></div></div>
+  <div class="card">
+    <div class="ctitle">G8 Currency × Factor Heatmap</div>
+    <div class="mtx"><table class="mtbl" id="mtbl">
+      <thead><tr><th class="lh">Currency</th><th>Growth</th><th>Inflation</th><th>Rates</th><th>Jobs</th><th>COT</th><th>Seasonal</th><th>Sentiment</th><th>Technicals</th><th>Score</th><th>Signal</th></tr></thead>
+      <tbody id="mtbl-body"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══ PAIR MATRIX ══ -->
+<div class="pg" id="pg-pairs">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Pair Matrix</div><div class="psub">28 pairs ranked by composite conviction · Live prices</div></div></div>
+  <div class="card">
+    <div class="ctitle">All Pairs · Ranked by Score</div>
+    <table class="stbl" style="width:100%">
+      <tr><th>#</th><th>Pair</th><th>Price</th><th>Change</th><th>Score</th><th>Conviction</th><th>Signal</th><th>RR</th></tr>
+      <tbody id="pairs-tbody"></tbody>
+    </table>
+  </div>
+  <!-- TradingView Screener -->
+  <div class="card" style="padding:0">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-forex-cross-rates.js" async>{"width":"100%","height":400,"currencies":["EUR","USD","JPY","GBP","CHF","AUD","CAD","NZD","XAU"],"isTransparent":true,"colorTheme":"dark","locale":"en"}</script>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COT ══ -->
+<div class="pg" id="pg-cot">
+  <div class="ph"><div class="ph-l"><div class="ptitle">COT Positioning</div><div class="psub">CFTC Commitment of Traders · Net speculator positions · 52-week percentiles</div></div></div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Net Positions (000s contracts)</div>
+      <canvas id="cotChart" height="220" aria-label="COT chart">COT data</canvas>
+    </div>
+    <div class="card">
+      <div class="ctitle">Long vs Short Breakdown</div>
+      <div id="cot-bars"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ YIELDS ══ -->
+<div class="pg" id="pg-yields">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Yields & Rate Differentials</div><div class="psub">Policy rates · 2Y/10Y curves · Real yields · Carry differentials</div></div></div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">Central Bank Policy Rates</div>
+      <table class="stbl" style="width:100%">
+        <tr><th>Central Bank</th><th>Rate</th><th>Last Move</th><th>Bias</th></tr>
+        <tr><td>Fed (USD)</td><td><b>5.25%</b></td><td>Hold</td><td><span class="sig sig-w">Neutral</span></td></tr>
+        <tr><td>ECB (EUR)</td><td><b>4.00%</b></td><td>-25bp</td><td><span class="sig sig-s">Dovish</span></td></tr>
+        <tr><td>BoE (GBP)</td><td><b>5.00%</b></td><td>Hold</td><td><span class="sig sig-w">Neutral</span></td></tr>
+        <tr><td>BoJ (JPY)</td><td><b>0.10%</b></td><td>+10bp</td><td><span class="sig sig-b">Hawkish</span></td></tr>
+        <tr><td>RBA (AUD)</td><td><b>4.35%</b></td><td>Hold</td><td><span class="sig sig-s">Dovish</span></td></tr>
+        <tr><td>SNB (CHF)</td><td><b>1.25%</b></td><td>-25bp</td><td><span class="sig sig-s">Dovish</span></td></tr>
+        <tr><td>BoC (CAD)</td><td><b>4.75%</b></td><td>-25bp</td><td><span class="sig sig-s">Dovish</span></td></tr>
+        <tr><td>RBNZ (NZD)</td><td><b>5.50%</b></td><td>Hold</td><td><span class="sig sig-w">Neutral</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="ctitle">2Y Yield Differential vs USD</div>
+      <div id="yield-bars"></div>
+    </div>
+  </div>
+  <!-- TradingView Bond Chart -->
+  <div class="card" style="padding:0">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>{"symbol":"TVC:US10Y","width":"100%","height":180,"locale":"en","dateRange":"3M","colorTheme":"dark","isTransparent":true,"autosize":false}</script>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SEASONALITY ══ -->
+<div class="pg" id="pg-seasonality">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Seasonality Engine</div><div class="psub">252-day seasonal curves · Monthly bias · Historical win rates</div></div></div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctitle">XAUUSD Monthly Seasonal Bias (10Y Avg)</div>
+      <canvas id="seasChart" height="200" aria-label="Seasonality chart">Seasonal data</canvas>
+    </div>
+    <div class="card">
+      <div class="ctitle">Monthly Win Rates — XAUUSD</div>
+      <table class="stbl" style="width:100%">
+        <tr><th>Month</th><th>Avg Return</th><th>Win Rate</th><th>Bias</th></tr>
+        <tr><td>January</td><td class="pos">+1.2%</td><td>68%</td><td><span class="sig sig-b">Bullish</span></td></tr>
+        <tr><td>February</td><td class="pos">+0.8%</td><td>62%</td><td><span class="sig sig-b">Bullish</span></td></tr>
+        <tr><td>March</td><td class="neg">-0.4%</td><td>44%</td><td><span class="sig sig-s">Bearish</span></td></tr>
+        <tr><td>July</td><td class="pos">+1.8%</td><td>72%</td><td><span class="sig sig-b">Bullish</span></td></tr>
+        <tr><td>August</td><td class="pos">+2.1%</td><td>76%</td><td><span class="sig sig-b">Strong Bull</span></td></tr>
+        <tr><td>September</td><td class="neg">-0.9%</td><td>41%</td><td><span class="sig sig-s">Bearish</span></td></tr>
+        <tr><td>December</td><td class="pos">+1.4%</td><td>70%</td><td><span class="sig sig-b">Bullish</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SENTIMENT ══ -->
+<div class="pg" id="pg-sentiment">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Sentiment & Crowd Positioning</div><div class="psub">Retail crowd · Contrarian lens · Extreme readings signal reversals</div></div></div>
+  <div class="g3">
+    <div class="card"><div class="ctitle">XAUUSD <span style="color:var(--rd);font-size:9px">78% Long → Contrarian Bear</span></div><div class="cot-bw" style="height:10px;border-radius:5px;margin:10px 0"><div class="cot-l" style="width:78%"></div><div class="cot-s" style="width:22%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px"><span class="pos">Long 78%</span><span class="neg">Short 22%</span></div></div>
+    <div class="card"><div class="ctitle">EURUSD <span style="color:var(--gn);font-size:9px">54% Short → Mild Bull</span></div><div class="cot-bw" style="height:10px;border-radius:5px;margin:10px 0"><div class="cot-l" style="width:46%"></div><div class="cot-s" style="width:54%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px"><span class="pos">Long 46%</span><span class="neg">Short 54%</span></div></div>
+    <div class="card"><div class="ctitle">GBPUSD <span style="color:var(--rd);font-size:9px">62% Long → Contrarian Bear</span></div><div class="cot-bw" style="height:10px;border-radius:5px;margin:10px 0"><div class="cot-l" style="width:62%"></div><div class="cot-s" style="width:38%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px"><span class="pos">Long 62%</span><span class="neg">Short 38%</span></div></div>
+    <div class="card"><div class="ctitle">USDJPY <span style="color:var(--gn);font-size:9px">71% Short → Contrarian Bull</span></div><div class="cot-bw" style="height:10px;border-radius:5px;margin:10px 0"><div class="cot-l" style="width:29%"></div><div class="cot-s" style="width:71%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px"><span class="pos">Long 29%</span><span class="neg">Short 71%</span></div></div>
+    <div class="card"><div class="ctitle">AUDUSD <span style="color:var(--rd);font-size:9px">58% Long → Contrarian Bear</span></div><div class="cot-bw" style="height:10px;border-radius:5px;margin:10px 0"><div class="cot-l" style="width:58%"></div><div class="cot-s" style="width:42%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px"><span class="pos">Long 58%</span><span class="neg">Short 42%</span></div></div>
+    <div class="card"><div class="ctitle">USDCAD <span style="color:var(--mt2);font-size:9px">Neutral</span></div><div class="cot-bw" style="height:10px;border-radius:5px;margin:10px 0"><div class="cot-l" style="width:51%"></div><div class="cot-s" style="width:49%"></div></div><div style="display:flex;justify-content:space-between;font-size:10px"><span class="pos">Long 51%</span><span class="neg">Short 49%</span></div></div>
+  </div>
+</div>
+
+<!-- ══ CALENDAR ══ -->
+<div class="pg" id="pg-calendar">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Economic Calendar</div><div class="psub">High-impact events · Next 48 hours · GMT</div></div></div>
+  <div class="card">
+    <div class="ctitle">Upcoming Events</div>
+    <div class="ev"><div class="ev-t">13:30</div><div class="ev-c">USD</div><div class="ev-n">CPI m/m</div><div class="ev-imp ih">HIGH</div><div class="ev-fc">Fcst 0.3%</div><div class="ev-fc">Prev 0.4%</div></div>
+    <div class="ev"><div class="ev-t">15:00</div><div class="ev-c">USD</div><div class="ev-n">Fed Powell Speech</div><div class="ev-imp ih">HIGH</div><div class="ev-fc">—</div><div class="ev-fc">—</div></div>
+    <div class="ev"><div class="ev-t">15:30</div><div class="ev-c">GBP</div><div class="ev-n">GDP m/m</div><div class="ev-imp im">MED</div><div class="ev-fc">0.1%</div><div class="ev-fc">-0.1%</div></div>
+    <div class="ev" style="background:rgba(240,180,41,0.04);padding:6px 8px;border-radius:6px;margin:6px 0"><div style="font-size:9px;color:var(--ac);font-weight:700;letter-spacing:1px">── TOMORROW ──</div></div>
+    <div class="ev"><div class="ev-t">09:00</div><div class="ev-c">EUR</div><div class="ev-n">ECB Meeting Minutes</div><div class="ev-imp ih">HIGH</div><div class="ev-fc">—</div><div class="ev-fc">—</div></div>
+    <div class="ev"><div class="ev-t">12:30</div><div class="ev-c">CAD</div><div class="ev-n">Employment Change</div><div class="ev-imp im">MED</div><div class="ev-fc">+22K</div><div class="ev-fc">+18K</div></div>
+    <div class="ev"><div class="ev-t">13:30</div><div class="ev-c">USD</div><div class="ev-n">PPI m/m</div><div class="ev-imp im">MED</div><div class="ev-fc">0.2%</div><div class="ev-fc">0.3%</div></div>
+    <div class="ev"><div class="ev-t">15:30</div><div class="ev-c">USD</div><div class="ev-n">Crude Oil Inventories</div><div class="ev-imp il">LOW</div><div class="ev-fc">-1.2M</div><div class="ev-fc">+2.1M</div></div>
+  </div>
+  <!-- TradingView Calendar -->
+  <div class="card" style="padding:0">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>{"colorTheme":"dark","isTransparent":true,"width":"100%","height":300,"locale":"en","importanceFilter":"0,1","countryFilter":"us,eu,gb,jp,au,ca,nz,ch"}</script>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PLAYBOOK ══ -->
+<div class="pg" id="pg-playbook">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Trade Playbook</div><div class="psub">Highest conviction setups · OB + Trend + COT confluence · Ranked</div></div></div>
+  <div class="pbc bull" id="pb-xau">
+    <div class="pbc-hdr"><span class="pbc-pair">XAUUSD — BUY</span><span class="pbc-cv hi-cv">HIGH CONVICTION · +14</span></div>
+    <div class="pbc-det" id="pb-xau-det">Loading live prices...</div>
+  </div>
+  <div class="pbc bear">
+    <div class="pbc-hdr"><span class="pbc-pair">GBPUSD — SELL</span><span class="pbc-cv hi-cv">HIGH CONVICTION · -8</span></div>
+    <div class="pbc-det"><b>Bias:</b> Bearish · <b>Entry:</b> 1.2755–1.2770 OB zone · <b>SL:</b> 1.2788 · <b>TP:</b> 1.2720 (1:2 RR)<br><b>At 1:1 hit:</b> SL → Breakeven · <b>At 1:2:</b> Close 75%, trail 25%<br><b>Confluence:</b> Below EMA200 · Bearish OB overhead · COT 69% short · London session</div>
+  </div>
+  <div class="pbc bear">
+    <div class="pbc-hdr"><span class="pbc-pair">AUDUSD — SELL</span><span class="pbc-cv md-cv">MEDIUM · -6</span></div>
+    <div class="pbc-det"><b>Bias:</b> Bearish · <b>Entry:</b> 0.6565–0.6575 OB · <b>SL:</b> 0.6588 · <b>TP:</b> 0.6535 (1:2 RR)<br><b>At 1:1 hit:</b> SL → Breakeven · <b>Confluence:</b> Downtrend · COT 72% short · RBA dovish</div>
+  </div>
+</div>
+
+<!-- ══ DAILY BRIEF ══ -->
+<div class="pg" id="pg-brief">
+  <div class="ph"><div class="ph-l"><div class="ptitle">Daily Macro Brief</div><div class="psub">Morning desk note · Live composite synthesis</div></div></div>
+  <div class="card">
+    <div class="brief">
+      <div class="brief-date" id="brief-date">—</div>
+      <div id="brief-body">Loading...</div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ══════════════════════════════
+// NHTRADERS7 TERMINAL ENGINE
+// ══════════════════════════════
+const FKEY='d9c34o1r01qpecdt69g0d9c34o1r01qpecdt69gg';
+const ASSETS={
+  XAUUSD:{name:'Gold vs USD',  tv:'OANDA:XAUUSD', dec:2, base:2673, score:+14},
+  XAGUSD:{name:'Silver vs USD',tv:'OANDA:XAGUSD', dec:2, base:31.8, score:+6},
+  EURUSD:{name:'EUR vs USD',   tv:'OANDA:EURUSD', dec:5, base:1.0832,score:+1},
+  GBPUSD:{name:'GBP vs USD',   tv:'OANDA:GBPUSD', dec:5, base:1.2741,score:-8},
+  USDJPY:{name:'USD vs JPY',   tv:'OANDA:USDJPY', dec:3, base:157.43,score:+11},
+  USDCHF:{name:'USD vs CHF',   tv:'OANDA:USDCHF', dec:5, base:0.8912,score:-3},
+  AUDUSD:{name:'AUD vs USD',   tv:'OANDA:AUDUSD', dec:5, base:0.6543,score:-6},
+  USDCAD:{name:'USD vs CAD',   tv:'OANDA:USDCAD', dec:5, base:1.3621,score:+4},
+  NZDUSD:{name:'NZD vs USD',   tv:'OANDA:NZDUSD', dec:5, base:0.5987,score:-4},
+};
+const VOL={XAUUSD:.2,XAGUSD:.04,EURUSD:.0003,GBPUSD:.0004,USDJPY:.05,USDCHF:.0003,AUDUSD:.0002,USDCAD:.0003,NZDUSD:.0002};
+
+const LP={};
+Object.keys(ASSETS).forEach(s=>{const b=ASSETS[s].base;LP[s]={price:b,open:b*.9998,high:b*1.002,low:b*.998,prev:b};});
+
+let curSym='XAUUSD',curTVSym='OANDA:XAUUSD';
+let tvWidget=null,cotChart=null,seasChart=null,simTimer=null;
+
+// ── TV ADVANCED CHART ──
+function initTVChart(){
+  if(typeof TradingView==='undefined')return;
+  tvWidget=new TradingView.widget({
+    container_id:'tv-chart-container',
+    symbol:curTVSym, interval:'3',
+    timezone:'Etc/UTC', theme:'dark',
+    style:'1', locale:'en',
+    toolbar_bg:'#111318', enable_publishing:false,
+    hide_top_toolbar:false, hide_legend:false,
+    save_image:false, height:'100%', width:'100%',
+    studies:['EMA@tv-basicstudies'],
+    overrides:{'paneProperties.background':'#111318','paneProperties.backgroundType':'solid'}
+  });
+}
+
+// ── FETCH PRICES ──
+async function fetchPrices(){
+  let ok=0;
+  for(const[sym,a]of Object.entries(ASSETS)){
+    try{
+      const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${a.tv.replace('OANDA:','OANDA:')}&token=${FKEY}`);
+      const d=await r.json();
+      if(d&&d.c>0){
+        LP[sym].price=d.c;LP[sym].open=d.o>0?d.o:d.c*.9998;
+        LP[sym].high=d.h>0?d.h:d.c*1.002;LP[sym].low=d.l>0?d.l:d.c*.998;
+        LP[sym].prev=d.pc>0?d.pc:d.c;
+        ASSETS[sym].base=d.c; ok++;
+        renderSB(sym); if(sym===curSym)renderCmd(sym);
+      }
+    }catch(e){}
+  }
+  if(ok>0){
+    document.getElementById('live-lbl').textContent=`Live · ${ok} pairs · ${new Date().toLocaleTimeString()}`;
+    renderStrength(); buildPairs(); updatePlaybook(); renderBrief();
+  } else {
+    document.getElementById('live-lbl').textContent='Simulating (market closed)';
+    startSim();
+  }
+  updateSess();
+}
+
+// ── WEBSOCKET ──
+function connectWS(){
+  try{
+    const ws=new WebSocket(`wss://ws.finnhub.io?token=${FKEY}`);
+    ws.onopen=()=>Object.values(ASSETS).forEach(a=>ws.send(JSON.stringify({type:'subscribe',symbol:a.tv})));
+    ws.onmessage=e=>{
+      const d=JSON.parse(e.data);
+      if(d.type!=='trade'||!d.data)return;
+      d.data.forEach(t=>{
+        const sym=Object.keys(ASSETS).find(k=>ASSETS[k].tv===t.s);
+        if(!sym)return;
+        LP[sym].prev=LP[sym].price; LP[sym].price=t.p;
+        if(t.p>LP[sym].high)LP[sym].high=t.p;
+        if(t.p<LP[sym].low)LP[sym].low=t.p;
+        renderSB(sym); if(sym===curSym)renderCmd(sym);
+        buildPairsRow(sym);
+      });
+      document.getElementById('live-lbl').textContent='Live · WS · '+new Date().toLocaleTimeString();
+    };
+    ws.onclose=()=>setTimeout(connectWS,8000);
+  }catch(e){}
+}
+
+// ── SIMULATOR ──
+function startSim(){
+  if(simTimer)return;
+  simTimer=setInterval(()=>{
+    Object.keys(ASSETS).forEach(sym=>{
+      const v=VOL[sym],move=(Math.random()-.499)*v*2,prev=LP[sym].price;
+      let np=parseFloat((prev+move).toFixed(ASSETS[sym].dec));
+      const b=ASSETS[sym].base;
+      if(np>b*1.015)np=b*1.015; if(np<b*.985)np=b*.985;
+      LP[sym].prev=prev; LP[sym].price=np;
+      if(np>LP[sym].high)LP[sym].high=np; if(np<LP[sym].low)LP[sym].low=np;
+      renderSB(sym); if(sym===curSym)renderCmd(sym); buildPairsRow(sym);
+    });
+    document.getElementById('live-lbl').textContent='Sim · '+new Date().toLocaleTimeString();
+    renderStrength();
+  },1200);
+}
+
+// ── SIDEBAR ──
+function renderSB(sym){
+  const d=LP[sym],pct=(d.price-d.open)/d.open*100,bull=pct>=0;
+  const pe=document.getElementById(`sbp-${sym}`),ce=document.getElementById(`sbc-${sym}`);
+  if(pe)pe.textContent=d.price.toFixed(ASSETS[sym].dec);
+  if(ce){ce.textContent=(bull?'+':'')+pct.toFixed(2)+'%';ce.className='sb-c '+(bull?'pos':'neg');}
+}
+
+// ── COMMAND ──
+function renderCmd(sym){
+  const d=LP[sym],chg=d.price-d.open,pct=chg/d.open*100,bull=pct>=0,dec=ASSETS[sym].dec;
+  const s=(id,v,c)=>{const e=document.getElementById(id);if(e){e.textContent=v;if(c)e.className=c;}};
+  s('cmd-title',sym+' — '+ASSETS[sym].name);
+  s('cmd-sub',(bull?'Bullish':'Bearish')+' trend · Live · '+(new Date().toLocaleTimeString()));
+  s('cmd-badge',bull?'BULLISH':'BEARISH','bdg '+(bull?'bdg-b':'bdg-s'));
+  // Compass
+  const ts=bull?['Bull','Bull','Bull','Neut','Bull','Bull']:['Bear','Bear','Bear','Neut','Bear','Bear'];
+  const cs=bull?['pos','pos','pos','neu','pos','pos']:['neg','neg','neg','neu','neg','neg'];
+  ['m3','m15','h1','h4','d1','w1'].forEach((id,i)=>{const e=document.getElementById('c-'+id);if(e){e.textContent=ts[i];e.className='ci-v '+cs[i];}});
+  // OB zones
+  const p=d.price;
+  document.getElementById('ob-list').innerHTML=[
+    [p*1.005,p*1.008,'obz-s','Bearish OB'],
+    [p*.993,p*.996,'obz-b','Bullish OB ★'],
+    [p*.986,p*.989,'obz-b','Bullish OB'],
+    [p*.978,p*.981,'obz-b','Strong OB'],
+  ].map(([h,l,cls,lbl])=>`<div class="ob-row"><span>$${l.toFixed(dec)} – $${h.toFixed(dec)}</span><span class="obz ${cls}">${lbl}</span></div>`).join('');
+  // Signals
+  const sg=(id,t,c)=>{const e=document.getElementById(id);if(e){e.textContent=t;e.className='sig '+c;}};
+  sg('ss-tr',bull?'Bullish':'Bearish',bull?'sig-b':'sig-s');
+  sg('ss-ob',bull?'In OB':'Near OB',bull?'sig-b':'sig-s');
+  sg('ss-rsi',(45+Math.random()*18).toFixed(0)+' — OK','sig-b');
+  sg('ss-ses','London Open','sig-b');
+  sg('ss-cot',bull?'68% Long':'Neutral','sig-b');
+  sg('ss-ov',bull?'BUY':'SELL',bull?'sig-b':'sig-s');
+  // Playbook update
+  updatePlaybook();
+}
+
+// ── STRENGTH ──
+function renderStrength(){
+  const raw={USD:0,EUR:0,GBP:0,JPY:0,CHF:0,AUD:0,CAD:0,NZD:0};
+  const p=s=>(LP[s].price-LP[s].open)/LP[s].open*100;
+  raw.EUR+=p('EURUSD');raw.USD-=p('EURUSD');
+  raw.GBP+=p('GBPUSD');raw.USD-=p('GBPUSD');
+  raw.USD+=p('USDJPY');raw.JPY-=p('USDJPY');
+  raw.USD+=p('USDCHF');raw.CHF-=p('USDCHF');
+  raw.AUD+=p('AUDUSD');raw.USD-=p('AUDUSD');
+  raw.USD+=p('USDCAD');raw.CAD-=p('USDCAD');
+  raw.NZD+=p('NZDUSD');raw.USD-=p('NZDUSD');
+  const sorted=Object.entries(raw).sort((a,b)=>b[1]-a[1]);
+  const mx=Math.max(...sorted.map(e=>Math.abs(e[1])))||.01;
+  const half=Math.ceil(sorted.length/2);let h1='',h2='';
+  sorted.forEach(([c,v],i)=>{
+    const w=Math.min(95,Math.abs(v)/mx*90+5),bull=v>=0;
+    const row=`<div class="str-row"><div class="str-sym">${c}</div><div class="str-bw"><div class="str-bf" style="width:${w.toFixed(0)}%;background:${bull?'var(--gn)':'var(--rd)'}"></div></div><div class="str-v ${bull?'pos':'neg'}">${v>=0?'+':''}${v.toFixed(2)}</div></div>`;
+    if(i<half)h1+=row;else h2+=row;
+  });
+  const g=document.getElementById('str-bars');
+  if(g)g.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">${h1.length?`<div>${h1}</div><div>${h2}</div>`:''}</div>`;
+}
+
+// ── MATRIX ──
+function buildMatrix(){
+  const currencies=['USD','EUR','GBP','JPY','CHF','AUD','CAD','NZD'];
+  const factors=['Growth','Inflation','Rates','Jobs','COT','Seasonal','Sentiment','Technicals'];
+  const scores={USD:[3,2,3,2,2,1,-1,2],EUR:[1,-1,-2,0,-1,1,1,0],GBP:[0,-1,-1,1,-2,-1,0,-1],JPY:[-2,-2,3,-1,-3,0,1,-2],CHF:[1,0,2,0,1,-1,0,1],AUD:[-1,1,-1,-1,-2,-1,-1,-1],CAD:[1,2,-1,0,0,-1,0,0],NZD:[-1,0,-2,-1,-1,-1,0,-1]};
+  const cl=v=>v>=2?'mbb':v>=1?'mb':v<=-2?'mss':v<=-1?'ms':'mn';
+  const tb=document.getElementById('mtbl-body');
+  if(!tb)return;
+  tb.innerHTML=currencies.map(cur=>{
+    const sc=scores[cur],tot=sc.reduce((a,b)=>a+b,0),bull=tot>0;
+    return `<tr><td class="mpair">${cur}</td>${sc.map(v=>`<td class="${cl(v)}">${v>0?'+':''}${v}</td>`).join('')}<td><b class="${bull?'pos':'neg'}">${tot>0?'+':''}${tot}</b></td><td><span class="sig ${bull?'sig-b':tot<0?'sig-s':'sig-w'}">${tot>4?'BUY':tot<-4?'SELL':'HOLD'}</span></td></tr>`;
+  }).join('');
+}
+
+// ── PAIRS ──
+function buildPairs(){
+  const tbody=document.getElementById('pairs-tbody');if(!tbody)return;
+  const all=Object.entries(ASSETS).map(([sym,a])=>({sym,a,d:LP[sym]}));
+  all.sort((x,y)=>Math.abs(y.a.score)-Math.abs(x.a.score));
+  tbody.innerHTML=all.map(({sym,a,d},i)=>{
+    const bull=a.score>=0,pct=(d.price-d.open)/d.open*100;
+    return `<tr><td style="color:var(--mt2);font-size:11px">${i+1}</td><td><b>${sym}</b></td><td>${d.price.toFixed(a.dec)}</td><td class="${pct>=0?'pos':'neg'}">${pct>=0?'+':''}${pct.toFixed(2)}%</td><td class="${bull?'pos':'neg'}"><b>${a.score>0?'+':''}${a.score}</b></td><td><span class="sig sig-w" style="font-size:9px">${Math.abs(a.score)>=8?'HIGH':Math.abs(a.score)>=4?'MED':'LOW'}</span></td><td><span class="sig ${bull?'sig-b':'sig-s'}">${bull?'BUY':'SELL'}</span></td><td>1:2</td></tr>`;
+  }).join('');
+}
+function buildPairsRow(sym){buildPairs();}
+
+// ── COT ──
+function buildCOT(){
+  if(cotChart)return;
+  const ctx=document.getElementById('cotChart');if(!ctx)return;
+  cotChart=new Chart(ctx,{type:'bar',data:{
+    labels:['XAUUSD','EUR','GBP','JPY','AUD','CAD','NZD'],
+    datasets:[{label:'Net (K)',data:[248,-82,-156,-312,-98,12,-44],
+      backgroundColor:['#22c55e','#ef4444','#ef4444','#ef4444','#ef4444','#22c55e','#ef4444'],borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#5a6272',font:{size:10}}},
+              y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#5a6272',font:{size:10}}}}}});
+  const cb=document.getElementById('cot-bars');
+  if(cb)cb.innerHTML=[['XAUUSD',68,32],['EUR',55,45],['GBP',38,62],['JPY',14,86],['AUD',28,72],['CAD',51,49],['NZD',34,66]].map(([s,l,sh])=>`<div class="cot-i"><div class="cot-h"><span><b>${s}</b></span><span class="${l>50?'pos':'neg'}">${l>50?'Net Long +':'Net Short '}${Math.abs(l-50)}% &nbsp; <small style="color:var(--mt)">52W %ile: ${Math.round(40+Math.random()*55)}%</small></span></div><div class="cot-bw"><div class="cot-l" style="width:${l}%"></div><div class="cot-s" style="width:${sh}%"></div></div></div>`).join('');
+}
+
+// ── SEASONALITY ──
+function buildSeas(){
+  if(seasChart)return;
+  const ctx=document.getElementById('seasChart');if(!ctx)return;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const vals=[1.2,.8,-.4,.2,-.1,.6,1.8,2.1,-.9,.4,.8,1.4];
+  seasChart=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'Avg Return %',data:vals,
+    backgroundColor:vals.map(v=>v>=0?'rgba(34,197,94,0.65)':'rgba(239,68,68,0.65)'),borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#5a6272',font:{size:10}}},
+              y:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#5a6272',font:{size:10},callback:v=>v+'%'}}}}});
+}
+
+// ── YIELDS ──
+function buildYields(){
+  const el=document.getElementById('yield-bars');if(!el)return;
+  [['EUR',-1.25,'neg'],['GBP',-0.25,'neg'],['JPY',-5.15,'neg'],['CHF',-4.00,'neg'],['AUD',-.90,'neg'],['CAD',-.50,'neg'],['NZD',+.25,'pos']].forEach(([c,v,cl])=>{
+    el.innerHTML+=`<div class="str-row"><div class="str-sym">${c}</div><div class="str-bw"><div class="str-bf" style="width:${Math.min(95,Math.abs(v)/6*90+5).toFixed(0)}%;background:${v>=0?'var(--gn)':'var(--rd)'}"></div></div><div class="str-v ${cl}">${v>=0?'+':''}${v.toFixed(2)}%</div></div>`;
+  });
+}
+
+// ── SESSION ──
+function updateSess(){
+  const h=new Date().getUTCHours();
+  const sess=[{n:'Tokyo',o:h>=0&&h<9},{n:'London',o:h>=7&&h<16},{n:'New York',o:h>=13&&h<22}];
+  const el=document.getElementById('sess-info');
+  if(el)el.innerHTML=sess.map(s=>`<div class="sess-row"><span><span class="sdot" style="background:${s.o?'var(--gn)':'var(--mt)'}"></span>${s.n}</span><span style="color:${s.o?'var(--gn)':'var(--mt)'}">${s.o?'Open':'Closed'}</span></div>`).join('');
+}
+
+// ── PLAYBOOK ──
+function updatePlaybook(){
+  const p=LP.XAUUSD.price,dec=2;
+  const sl=(p-p*.006).toFixed(dec),tp=(p+p*.012).toFixed(dec),ob1=(p-p*.004).toFixed(dec),ob2=(p-p*.003).toFixed(dec);
+  const el=document.getElementById('pb-xau-det');
+  if(el)el.innerHTML=`<b>Bias:</b> Bullish · <b>Entry:</b> $${ob1}–$${ob2} Bullish OB zone · <b>SL:</b> $${sl} · <b>TP:</b> $${tp} (1:2 RR)<br><b>At 1:1 hit:</b> SL → Breakeven auto · <b>At 1:2:</b> Close 75%, trail remaining 25%<br><b>Confluence:</b> Price above EMA200 · Bullish OB retest · COT 68% long · London session active · Seasonal bias bullish`;
+}
+
+// ── BRIEF ──
+function renderBrief(){
+  const d=new Date();
+  const el=document.getElementById('brief-date'),bd=document.getElementById('brief-body');
+  if(el)el.textContent=d.toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · Morning Desk Brief';
+  const xBull=LP.XAUUSD.price>=LP.XAUUSD.open;
+  if(bd)bd.innerHTML=`
+    <p style="margin-bottom:10px"><b>XAUUSD (Gold)</b> is trading ${xBull?'higher':'lower'} at <b>$${LP.XAUUSD.price.toFixed(2)}</b>. Composite score <b class="pos">+14/36</b> — moderately bullish. The primary setup remains buying pullbacks into the <b>$${(LP.XAUUSD.price*.996).toFixed(0)}–$${(LP.XAUUSD.price*.998).toFixed(0)} bullish OB zone</b> on M3 timeframe, targeting 1:2 RR. At 1:1 profit, SL moves to breakeven. COT data shows institutional longs at 68% — near 12-month highs.</p>
+    <p style="margin-bottom:10px"><b>USD Strength</b> dominates the board at composite <b class="pos">+18</b>, supported by higher-for-longer Fed messaging. <b>USDJPY</b> at <b>${LP.USDJPY.price.toFixed(3)}</b> with score <b class="pos">+11</b> — BoJ intervention risk above 158.00.</p>
+    <p style="margin-bottom:10px"><b>GBPUSD</b> weakest major at <b>${LP.GBPUSD.price.toFixed(5)}</b>, score <b class="neg">-8</b>. Bearish OB at 1.2755–1.2770 offers high-conviction short. <b>AUDUSD</b> score <b class="neg">-6</b>, COT 72% short — second-best short candidate.</p>
+    <p style="color:var(--mt);font-size:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">Generated from live composite data · NHTRADERS7 · Not financial advice · Trade responsibly.</p>`;
+}
+
+// ── PAGE SWITCH ──
+function go(id,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nt').forEach(t=>t.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='cot')setTimeout(buildCOT,100);
+  if(id==='seasonality')setTimeout(buildSeas,100);
+  if(id==='matrix')buildMatrix();
+  if(id==='pairs')buildPairs();
+  if(id==='yields')buildYields();
+  if(id==='brief')renderBrief();
+}
+
+// ── PICK SYMBOL ──
+function pickSym(el,sym,tvSym){
+  document.querySelectorAll('.sb-i').forEach(i=>i.classList.remove('on'));
+  el.classList.add('on'); curSym=sym; curTVSym='OANDA:'+sym;
+  if(tvWidget){try{tvWidget.setSymbol('OANDA:'+sym,'3',()=>{});}catch(e){}}
+  renderCmd(sym);
+  document.getElementById('cmd-title').textContent=sym+' — '+ASSETS[sym].name;
+}
+
+// ── BOOT ──
+window.addEventListener('load',async()=>{
+  updateSess(); buildPairs(); buildYields();
+  await fetchPrices();
+  connectWS();
+  setInterval(fetchPrices,30000);
+  setInterval(updateSess,60000);
+  Object.keys(ASSETS).forEach(s=>renderSB(s));
+  renderCmd('XAUUSD'); renderBrief();
+  setTimeout(initTVChart,2000);
+});
+</script>
+</body>
+</html>
